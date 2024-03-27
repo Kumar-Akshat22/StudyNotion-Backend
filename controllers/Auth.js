@@ -301,3 +301,14 @@ exports.login = async(req,res) => {
 }
 
 // Change Password
+// TODO: HomeWork
+exports.changePassword = async(req,res) => {
+
+    // Extract the data from the request body
+    // oldPassword, newPassword, confirmPassword
+    // Validate the passwords
+    // Update the new Password into the DB
+    // Send mail -> Password Updated
+    // Return response
+    
+}
