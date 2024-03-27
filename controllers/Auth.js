@@ -3,6 +3,8 @@ const OTP = require("../models/OTP");
 const otpGenerator = require("otp-generator");
 const bcrypt = require("bcrypt");
 const Profile = require("../models/Profile");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 // Send OTP
 exports.sendOTP = async(req,res) => {
@@ -97,7 +99,7 @@ exports.signup = async(req,res)=>{
             password,
             confirmPassword,
             accountType,
-            contactNumber,
+            contactNumber, 
             otp
         } = req.body;
 
@@ -183,7 +185,7 @@ exports.signup = async(req,res)=>{
             accountType,
             additionalDetails: profileDetails._id,
             image:`https://api.dicebear.com/5.x/initials/svg?seed=${firstname}${lastname}`
-            
+
         })
 
         return res.status(200).json({
@@ -203,4 +205,99 @@ exports.signup = async(req,res)=>{
             message:'User cannot be registered. Please try again',
         })
     }
-}   
+}
+
+// Login
+exports.login = async(req,res) => {
+
+    try{
+
+        // Fetch the data from the request body
+        const {email , password} = req.body;
+
+        // Validate the data 
+        if(!email || !password){
+
+            return res.status(403).json({
+
+                success:false,
+                message:'All fields are required. Enter all the fields',
+
+            })
+        }
+
+        // Check whether user exists or not 
+        const user = await User.findOne({email}).populate("additionalDetails");
+
+        if(!user){
+
+            return res.status(401).json({
+
+                success:false,
+                message:'User not registered, please sign up first',
+
+            })
+        }
+
+        // Match the Password -> Decrypt the password and then match it from the password fetched from request body
+        if(await bcrypt.compare(password , user.password)){
+
+            // Generate the JWT token
+            const payload = {
+
+                email:user.email,
+                id:user._id,
+                accountType:user.accountType,
+
+            }
+
+            
+            const token = jwt.sign(payload , process.env.JWT_SECRET , {
+
+                expiresIn:"2h"
+            });
+
+            user.token = token;
+            user.password = undefined;
+
+            // Create a Cookie
+            const options = {
+
+                expires: new Date(Date.now() + 3*24*60*60*1000),
+                httpOnly:true,
+
+            }
+
+            res.cookie("token",token , options).status(200).json({
+
+                success:true,
+                token,
+                user,
+                message:'User logged In successfully',
+            })
+
+        } else{
+
+            return res.status(401).json({
+
+                success:false,
+                message:'Password is Incorrect',
+
+            })
+        } 
+
+
+    }
+
+    catch(err){
+
+        console.log(err);
+        return res.status(500).json({
+
+            success:false,
+            message:'Login Failure, Please LogIn again',
+        })
+    }
+}
+
+// Change Password
