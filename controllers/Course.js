@@ -28,6 +28,7 @@ exports.createCourse = async(req,res) => {
         const userId = req.user.id;
         const instructorDetails = await User.findById(userId);
         console.log('Instructor Details : ',instructorDetails);
+        //TODO: VERIFY THAT userId AND instructorDetails._id are same of different
 
         if(!instructorDetails){
 
@@ -100,3 +101,30 @@ exports.createCourse = async(req,res) => {
     }
 }
 
+// getAllCourses
+exports.showAllCourses = async(req,res) => {
+
+    try{
+
+        // find call to the DB
+        // TODO: change the below statement incrementally
+        const allCourses = await Course.find({})
+        
+        return res.status(200).json({
+
+            success:true,
+            message:'Data for all the courses fetched successfully',
+            data:allCourses
+        })
+
+    } catch(err){
+
+        return res.status(500).json({
+
+            success:false,
+            message:'Cannot fetch courses data',
+            error:err.message,
+        })
+
+    }
+}
