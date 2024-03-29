@@ -13,11 +13,14 @@ const tagSchema = new mongoose.Schema({
         type:String,
     },
 
-    course: {
+    course:[
 
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Course",
-    }
+        {
+            
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Course",
+        }
+    ] 
     
 });
 
